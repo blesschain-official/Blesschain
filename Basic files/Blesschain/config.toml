@@ -1,0 +1,5 @@
+[patch.crates-io]
+sp-std = { path = "/home/blesschain/blesschain/blesschain-sdk/primitives/std" }
+
+[build]
+target-dir = "/mnt/data/blesschain-target"

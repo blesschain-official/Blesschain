@@ -1,0 +1,16 @@
+[package]
+name = "pallet-metadata"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+frame-system = { path = "blesschain-sdk/frame/system" }
+sp-std = { path = "blesschain-sdk/primitives/std" }
+
+[features]
+default = ["std"]
+std = [
+    "frame-support/std",
+    "frame-system/std",
+    "sp-std/std"
+]

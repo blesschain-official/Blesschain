@@ -1,0 +1,5 @@
+[package]
+name = "wasm-opt-sys"
+version = "0.111.0"
+edition = "2021"
+

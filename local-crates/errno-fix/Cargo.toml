@@ -1,0 +1,15 @@
+[package]
+name = "errno"
+version = "0.3.11"
+edition = "2018"
+
+[lib]
+name = "errno"
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]
+libc = "0.2"
+

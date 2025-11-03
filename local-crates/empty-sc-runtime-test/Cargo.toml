@@ -1,0 +1,4 @@
+[package]
+name = "sc-runtime-test"
+version = "0.111.0"
+edition = "2021"
