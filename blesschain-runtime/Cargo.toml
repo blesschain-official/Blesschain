@@ -2,77 +2,62 @@
 name = "blesschain-runtime"
 version = "0.1.0"
 edition = "2021"
-license = "GPL-3.0-only"
 publish = false
 
 [dependencies]
-frame-system = { path = "../blesschain-sdk/frame/system", default-features = false }
-pallet-balances = { path = "../blesschain-sdk/frame/balances", default-features = false }
-sp-core = { path = "../blesschain-sdk/primitives/core", default-features = false }
-sp-io = { path = "../blesschain-sdk/primitives/io", default-features = false }
-sp-runtime = { path = "../blesschain-sdk/primitives/runtime", default-features = false }
-sp-std = { path = "../blesschain-sdk/primitives/std", default-features = false }
-serde = { version = "1.0", features = ["derive"], optional = true }
-getrandom = { version = "0.2.16", features = ["js"], optional = true }
-frame-support = { path = "../blesschain-sdk/frame/support", default-features = false }
-codec = { package = "parity-scale-codec", version = "3.6", features = ["derive"] }
-scale-info = { version = "2.9", features = ["derive"] }
-pallet-transaction-payment = { default-features = false, path = "../blesschain-sdk/frame/transaction-payment" }
-sp-consensus-aura = { path = "../blesschain-sdk/primitives/consensus/aura", default-features = false }
-sp-version = { path = "../blesschain-sdk/primitives/version", default-features = false }
-sp-api = { path = "../blesschain-sdk/primitives/api", default-features = false }
-sp-inherents = { path = "../blesschain-sdk/primitives/inherents", default-features = false }
-sp-timestamp = { path = "../blesschain-sdk/primitives/timestamp", default-features = false }
-pallet-timestamp = { path = "../blesschain-sdk/frame/timestamp", default-features = false }
-frame-executive = { path = "../blesschain-sdk/frame/executive", default-features = false }
-sp-block-builder = { path = "../blesschain-sdk/primitives/block-builder", default-features = false }
-sp-consensus-slots = { path = "../blesschain-sdk/primitives/consensus/slots", default-features = false }
 
-[dependencies.frame-benchmarking]
-path = "../blesschain-sdk/frame/benchmarking"
-default-features = false
-optional = true
+# FRAME core
+frame-support = { path = "../../blesschain-sdk/substrate/frame/support" }
+frame-system  = { path = "../../blesschain-sdk/substrate/frame/system" }
+frame-executive = { path = "../../blesschain-sdk/substrate/frame/executive" }
 
-[dependencies.pallet-aura]
-version = "4.0.0-dev"
-default-features = false
-path = "../blesschain-sdk/frame/aura"
+# FRAME pallets
+pallet-balances  = { path = "../../blesschain-sdk/substrate/frame/balances" }
+pallet-timestamp = { path = "../../blesschain-sdk/substrate/frame/timestamp" }
+pallet-aura      = { path = "../../blesschain-sdk/substrate/frame/aura" }
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+# Substrate primitives
+sp-runtime        = { path = "../../blesschain-sdk/substrate/primitives/runtime" }
+sp-core           = { path = "../../blesschain-sdk/substrate/primitives/core" }
+sp-io             = { path = "../../blesschain-sdk/substrate/primitives/io" }
+sp-api            = { path = "../../blesschain-sdk/substrate/primitives/api" }
+sp-inherents      = { path = "../../blesschain-sdk/substrate/primitives/inherents" }
+sp-version        = { path = "../../blesschain-sdk/substrate/primitives/version" }
+sp-timestamp      = { path = "../../blesschain-sdk/substrate/primitives/timestamp" }
+sp-consensus-aura = { path = "../../blesschain-sdk/substrate/primitives/consensus/aura" }
+sp-std = { path = "../../blesschain-sdk/substrate/primitives/std", default-features = false }
+sp-block-builder = { path = "../../blesschain-sdk/substrate/primitives/block-builder", default-features = false }
+sp-transaction-pool = { path = "../../blesschain-sdk/substrate/primitives/transaction-pool", default-features = false }
+pallet-transaction-payment = { path = "../../blesschain-sdk/substrate/frame/transaction-payment", default-features = false }
+
+# Codecs
+parity-scale-codec = { version = "3.6.5", features = ["derive"] }
+scale-info         = { version = "2.11.2", features = ["derive"] }
+
+serde = { version = "1.0", default-features = true }
 
 [features]
 default = ["std"]
 std = [
-  "pallet-balances/std",
-  "pallet-transaction-payment/std",
-  "sp-core/std",
-  "sp-io/std",
-  "sp-runtime/std",
-  "sp-std/std",
-  "serde/std",
-  "getrandom/std",
   "frame-support/std",
-  "codec/std",
-  "scale-info/std",
+  "frame-system/std",
+  "pallet-balances/std",
   "pallet-timestamp/std",
   "pallet-aura/std",
-  "sp-consensus-aura/std",
+  "sp-runtime/std",
+  "sp-core/std",
+  "sp-io/std",
   "sp-api/std",
-  "frame-system/std",
   "sp-inherents/std",
+  "sp-version/std",
   "sp-timestamp/std",
-  "pallet-timestamp/std",
+  "sp-consensus-aura/std",
+  "parity-scale-codec/std",
+  "scale-info/std",
+  "serde/std",
+  "sp-std/std",
+  "sp-block-builder/std",
+  "sp-transaction-pool/std",
+  "pallet-transaction-payment/std",
 ]
-
-runtime-benchmarks = [
-  "frame-system/runtime-benchmarks",
-  "frame-support/runtime-benchmarks",
-  "pallet-balances/runtime-benchmarks",
-  "frame-benchmarking/runtime-benchmarks",
-]
-
-
-
-
 

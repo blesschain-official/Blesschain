@@ -1,160 +1,270 @@
-✅ README.md for BlessChain v0.2.0 TestNet
-BlessChain v0.2.0 TestNet
-BlessChain v0.2.0 TestNet is the next stage of the BlessChain MVP —
- a lightweight, natively compiled blockchain that introduces configurable mock block production for test environments.
-This repository contains the core node (blesschain-node) and runtime (blesschain-runtime) that together form the technical foundation for the Bless Ecosystem TestNet —
- powering experiments with validator nodes, token distribution, and AI-integrated services under real-time block simulation.
+📘 BlessChain – Testnet Development Branch (testnet-dev)
 
-🚀 Key Features
-✅ Fast, native-only blockchain (no WASM)
- ⚡ Mock block engine — produces blocks at a configurable interval (default 2 seconds)
- 🔧 CLI control via --chain and --block-interval options
- 💎 Minimal runtime including System, Balances, Aura, and Timestamp pallets
- 🌐 Local Substrate SDK integration (~/blesschain-sdk)
- 🧱 Fully native build (no wasm-builder or wasm-opt required)
- 🧭 Compatible with Ubuntu 22.04 / 24.04 LTS
- 🧩 Modular runtime design — ready for pallet extensions in future releases
+Next-Generation Home-Node Blockchain Network
+Modular • Energy-Aware • Community-Powered
 
-🧰 Prerequisites
-Component
-Version / Notes
-OS
-Ubuntu 22.04 / 24.04 LTS
-Rust
-rustc 1.81+ (via rustup)
-Cargo
-Included with Rust
-Toolchain
-stable
-Substrate SDK
-Local clone at ~/blesschain-sdk
-Build Target
-Native (WASM disabled)
+Branch: testnet-dev
+Version: v0.2.x-devnet
+Status: Active Runtime Development (Node temporarily disabled)
 
 
-🧱 Environment Setup
-Tested Environment
-Install System Dependencies
-sudo apt update
-sudo apt install -y clang cmake make pkg-config libssl-dev git curl build-essential
+---
 
-Install Rust Toolchain
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-rustup default stable
+🚀 Overview
+
+This branch hosts the Testnet Development (Devnet) version of BlessChain.
+
+The current development phase focuses on:
+
+Building & stabilizing the BlessChain Runtime
+
+Verifying pallet configuration
+
+Finalizing genesis configuration
+
+Metadata & type correctness
+
+Substrate SDK compatibility
+
+
+⚠️ Important Note
+
+The BlessChain Node does NOT build yet on this branch.
+Only the runtime compiles successfully.
+Full node support will be restored after completing runtime stabilization and SDK alignment.
+
+
+---
+
+🧱 Purpose of This Branch
+
+✔ Runtime compilation
+
+✔ Pallet integration testing
+
+✔ Genesis & metadata validation
+
+❌ Node execution (NOT supported yet)
+
+✔ SDK compatibility testing
+
+✔ Prepare for full testnet deployment
+
+
+
+---
+
+🏗 Project Structure (Corrected)
+
+blesschain/
+├── blesschain-node/
+│   └── node/        ← node exists, but does NOT compile yet
+│       ├── src/
+│       └── Cargo.toml
+│
+├── blesschain-runtime/   ← CURRENT PRIMARY TARGET (compiles successfully)
+│   ├── src/
+│   └── Cargo.toml
+│
+├── pallets/
+│   └── (custom pallets)
+│
+├── Cargo.toml
+└── README.md
+
+Status per component:
+
+Component	Status
+
+Runtime	✅ Builds successfully
+Pallets	🟡 Under development, part of runtime
+Node	❌ Temporarily NOT compiling
+ChainSpec	❌ Not ready yet
+SDK integration	🟡 In progress
+
+
+
+---
+
+🧩 BlessChain SDK (External Repository)
+
+BlessChain depends on a patched Substrate SDK stored separately:
+
+🔗 BlessChain SDK Repository:
+https://github.com/blesschain-org/blesschain-sdk
+
+Used for:
+
+Offline builds
+
+Patched Substrate modules
+
+Deterministic compilation
+
+wasm-opt / RocksDB / metadata fixes
+
+
+Most developers do NOT need to modify it.
+Runtime developers must clone it.
+
+
+---
+
+🛠 Build Instructions (Runtime Only)
+
+1. Install toolchain
+
+rustup update
 rustup target add wasm32-unknown-unknown
 
-WASM target is optional — BlessChain TestNet builds natively.
-Setup Local Directory Links
-sudo mkdir -p /home/blesschain
-sudo ln -s /home/$(whoami)/blesschain /home/blesschain/blesschain
-sudo ln -s /home/$(whoami)/blesschain-sdk /home/blesschain/blesschain-sdk
+2. Clone the SDK
 
+git clone https://github.com/blesschain-org/blesschain-sdk
 
-🏗️ Build Instructions
-1️⃣ Clone Repository
-git clone https://github.com/blesschain-official/blesschain.git
+3. Clone BlessChain (testnet-dev)
+
+git clone https://github.com/blesschain-org/blesschain
 cd blesschain
-
-2️⃣ Clean Cache
-cargo clean
-
-3️⃣ Build Node (native-only)
-cargo build --release -p blesschain-node --target-dir /mnt/data/blesschain-target
-
-This compiles the BlessChain TestNet binary:
-/mnt/data/blesschain-target/release/blesschain-node
+git checkout testnet-dev
 
 
-▶️ Run the TestNet
-🔹 Quick Start (default 2-second blocks)
-/mnt/data/blesschain-target/release/blesschain-node
+---
 
-Starts the TestNet with:
-chain = dev
+🧪 Build ONLY the Runtime (Correct Command)
 
+BlessChain currently supports runtime-only compilation:
 
-block interval = 2 seconds
+cargo build -p blesschain-runtime --release
 
+or for debug:
 
-🔹 Advanced Mode (custom interval)
-/mnt/data/blesschain-target/release/blesschain-node --chain dev --block-interval 7
+cargo build -p blesschain-runtime
 
-Produces blocks every 7 seconds instead of 2.
-Expected output:
-🏗️  Starting BlessChain TestNet node...
-⏱️  Producing mock blocks every 2 seconds
-🧱  Imported #1 (0xabc...)
-🧱  Imported #2 (0xdef...)
+📌 Output:
 
+WASM file located in:
 
-🧩 Project Structure
-blesschain/
-├── node/                    # Node service (main.rs, command.rs, service.rs)
-├── blesschain-runtime/      # Runtime (System, Balances, Aura, Timestamp)
-├── blesschain-sdk/          # Local Substrate SDK clone
-├── local-crates/            # Local patches (e.g. wasm-builder-runner)
-├── Cargo.toml               # Workspace definition
-└── docs/                    # Developer documentation
+blesschain-runtime/target/wasm32-unknown-unknown/release/*.wasm
 
+⚠️ Node does NOT compile yet
 
-⚙️ Validator Preparation (TestNet Mode)
-BlessChain validators can join the TestNet to simulate block production and reward logic.
- A simplified setup is included for mock validators.
-1️⃣ Generate Keys
-/mnt/data/blesschain-target/release/blesschain-node key generate --scheme sr25519
+You must NOT run:
 
-Record the public key — this will be your validator identity.
-2️⃣ Create Local Spec
-/mnt/data/blesschain-target/release/blesschain-node build-spec > blesschain-testnet.json
+cargo build
 
-3️⃣ Run Validator Node
-/mnt/data/blesschain-target/release/blesschain-node \
-  --chain blesschain-testnet.json \
-  --block-interval 2
+It will fail because:
 
-Future releases will integrate full Aura + Grandpa authority management.
+node crate is unfinished
 
-🧠 Troubleshooting
-Issue
-Solution
-frame/benchmarking/Cargo.toml missing
-Remove frame-benchmarking dependency
-sp-test-primitives not found
-Add under [workspace.dependencies] or remove
-Permission denied on /mnt/data/blesschain-target
-Run:
-sudo mkdir -p /mnt/data/blesschain-target && sudo chown $USER:$USER /mnt/data/blesschain-target
-wasm-opt or wasm-builder errors
-Remove wasm-related crates (native-only)
-bandersnatch-experimental feature errors
-Ensure local SDK matches the blesschain branch version
+RPC and ChainSpec incomplete
 
-
-🧾 License
-GPL-3.0-only — see LICENSE
-
-🕊️ Credits
-Developed by the BlessChain Team
- 🌐 https://blesschain.com
- Project Director: Joseph Wang
-
-📘 Version Notes
-Date
-Change
-Notes
-2025-10-20
-First MVP build
-2s block time on T7910
-2025-11-11
-Rebuilt on T7810
-Native runtime confirmed
+SDK path updates still in progress
 
 
 
+---
+
+🏁 Node / Chain Execution
+
+❌ Node execution is temporarily disabled on testnet-dev.
+
+Future support will include:
+
+./target/release/blesschain-node --dev
+
+…but this will only work after node compilation is restored.
+
+
+---
+
+🔧 Features Under Active Development
+
+Runtime
+
+pallet_timestamp
+
+pallet_balances
+
+metadata fixes
+
+genesis config
+
+runtime API wiring
+
+
+Node
+
+Service builder cleanup
+
+RPC integration
+
+ChainSpec migration
+
+Aura consensus bootstrapping
+
+
+SDK
+
+Correct module mapping
+
+Vendor path realignment
+
+wasm-builder-runner improvements
 
 
 
+---
 
+🧭 Branch Policy
+
+Frequent updates
+
+Breaking changes allowed
+
+Runtime-first development
+
+Node features re-enabled after runtime stabilization
+
+PRs must target testnet-dev
+
+
+
+---
+
+🧪 How Developers Use This Branch
+
+To build the runtime:
+
+cargo build -p blesschain-runtime --release
+
+To modify SDK internals:
+
+git clone https://github.com/blesschain-org/blesschain-sdk
+
+
+---
+
+📩 Maintainer
+
+Director: Joseph Wang
+Organization: BlessChain Team
+Website: https://blesschain.org
+
+Contact via GitHub Issues or Pull Requests.
+
+
+---
+
+🏁 Final Notes
+
+This README reflects the current real development status:
+
+Runtime works
+
+Node does NOT compile
+
+Testnet-dev = Runtime stabilization phase
+
+SDK must be cloned separately
 
 

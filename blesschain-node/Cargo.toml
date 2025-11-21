@@ -1,0 +1,87 @@
+[package]
+name = "blesschain-node"
+version = "0.1.0"
+edition = "2021"
+license = "MIT-0"
+publish = false
+build = "build.rs"
+description = "BlessChain Node built with Substrate Solochain SDK"
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+futures = { workspace = true }
+serde_json = { workspace = true }
+jsonrpsee = { workspace = true, features = ["server"] }
+
+# ----------------------------------------
+# Substrate Client Components
+# ----------------------------------------
+sc-cli = { path = "../../blesschain-sdk/substrate/client/cli" }
+sc-service = { path = "../../blesschain-sdk/substrate/client/service" }
+sc-executor = { path = "../../blesschain-sdk/substrate/client/executor" }
+sc-network = { path = "../../blesschain-sdk/substrate/client/network" }
+sc-telemetry = { path = "../../blesschain-sdk/substrate/client/telemetry" }
+sc-transaction-pool = { path = "../../blesschain-sdk/substrate/client/transaction-pool" }
+sc-transaction-pool-api = { path = "../../blesschain-sdk/substrate/client/transaction-pool/api" }
+sc-client-api = { path = "../../blesschain-sdk/substrate/client/api" }
+sc-rpc-api = { path = "../../blesschain-sdk/substrate/client/rpc-api" }
+sc-basic-authorship = { path = "../../blesschain-sdk/substrate/client/basic-authorship" }
+sc-consensus = { path = "../../blesschain-sdk/substrate/client/consensus/common" }
+sc-consensus-aura = { path = "../../blesschain-sdk/substrate/client/consensus/aura" }
+sc-consensus-grandpa = { path = "../../blesschain-sdk/substrate/client/consensus/grandpa" }
+sc-offchain = { path = "../../blesschain-sdk/substrate/client/offchain" }
+
+# ----------------------------------------
+# Substrate Primitives
+# ----------------------------------------
+sp-core = { path = "../../blesschain-sdk/substrate/primitives/core" }
+sp-runtime = { path = "../../blesschain-sdk/substrate/primitives/runtime" }
+sp-io = { path = "../../blesschain-sdk/substrate/primitives/io" }
+sp-api = { path = "../../blesschain-sdk/substrate/primitives/api" }
+sp-keyring = { path = "../../blesschain-sdk/substrate/primitives/keyring" }
+sp-timestamp = { path = "../../blesschain-sdk/substrate/primitives/timestamp" }
+sp-inherents = { path = "../../blesschain-sdk/substrate/primitives/inherents" }
+sp-blockchain = { path = "../../blesschain-sdk/substrate/primitives/blockchain" }
+sp-block-builder = { path = "../../blesschain-sdk/substrate/primitives/block-builder" }
+sp-consensus-aura = { path = "../../blesschain-sdk/substrate/primitives/consensus/aura" }
+sp-consensus-grandpa = { path = "../../blesschain-sdk/substrate/primitives/consensus/grandpa" }
+
+# ----------------------------------------
+# FRAME + RPC
+# ----------------------------------------
+frame-system = { path = "../../blesschain-sdk/frame/system" }
+frame-executive = { path = "../../blesschain-sdk/frame/executive" }
+
+substrate-frame-rpc-system = { path = "../../blesschain-sdk/utils/frame/rpc/system" }
+pallet-transaction-payment = { path = "../../blesschain-sdk/frame/transaction-payment", default-features = false }
+pallet-transaction-payment-rpc = { path = "../../blesschain-sdk/frame/transaction-payment/rpc" }
+
+# ----------------------------------------
+# Benchmarking Tools (optional)
+# ----------------------------------------
+frame-benchmarking-cli = { path = "../../blesschain-sdk/utils/frame/benchmarking-cli" }
+
+# ----------------------------------------
+# LOCAL RUNTIME
+# ----------------------------------------
+blesschain-runtime = { path = "../blesschain-runtime" }
+
+[build-dependencies]
+substrate-build-script-utils = { path = "../../blesschain-sdk/utils/build-script-utils" }
+
+[features]
+default = []
+runtime-benchmarks = [
+    "frame-benchmarking-cli/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "sc-service/runtime-benchmarks",
+    "blesschain-runtime/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
+]
+try-runtime = [
+    "frame-system/try-runtime",
+    "pallet-transaction-payment/try-runtime",
+    "blesschain-runtime/try-runtime",
+    "sp-runtime/try-runtime",
+]
+

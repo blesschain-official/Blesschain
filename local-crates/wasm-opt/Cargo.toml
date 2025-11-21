@@ -1,5 +1,0 @@
-[package]
-name = "wasm-opt"
-version = "0.111.0"
-edition = "2021"
-

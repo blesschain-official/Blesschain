@@ -1,111 +1,211 @@
-//! BlessChain minimal runtime that compiles with current Substrate SDK
+// blesschain-runtime/src/lib.rs
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_core::H256;
-use sp_runtime::{
-    generic,
-    traits::{BlakeTwo256, IdentityLookup},
-    AccountId32,
-};
+use sp_std::prelude::*;
+
+// FRAME & pallets
 use frame_support::{
-    construct_runtime, parameter_types,
-    traits::{ConstU16, ConstU32, ConstU64, Everything},
+    construct_runtime,
+    parameter_types,
+    traits::{ConstU32, ConstU64, Everything},
 };
 use frame_system as system;
 
-// --- Declare constants module before use ---
-pub mod constants;
-use crate::constants::SLOT_DURATION;
+// Core primitives
+use sp_core::{H256, OpaqueMetadata};
+use sp_runtime::{
+    generic,
+    traits::{BlakeTwo256, IdentifyAccount, Verify, Block as BlockT},
+    MultiSignature, MultiAddress,
+    transaction_validity::{TransactionSource, TransactionValidity},
+    ApplyExtrinsicResult,
+    generic::LazyBlock,
+};
+use sp_version::RuntimeVersion;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_api::{impl_runtime_apis, Core as CoreApi};
+use sp_inherents::{CheckInherentsResult, InherentData};
+use sp_consensus_aura::SlotDuration;
+use sp_block_builder::BlockBuilder as BlockBuilderApi;
+use sp_consensus_aura::AuraApi as AuraRuntimeApi;
 
-// ---------------- Types ----------------
+// ────────────────────────────────────────────────────────────
+// Basic Types
+// ────────────────────────────────────────────────────────────
+
+pub type Signature = MultiSignature;
+pub type AccountPublic = <Signature as Verify>::Signer;
+
+pub type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
 pub type BlockNumber = u32;
-pub type Index = u32;
 pub type Balance = u128;
-pub type AccountId = AccountId32;
+pub type Index = u32;
+pub type Hash = H256;
 
-// ---------------- System ----------------
+pub type Address = MultiAddress<AccountId, ()>;
+
+pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+
+pub type SignedExtra = (
+    frame_system::CheckNonZeroSender<Runtime>,
+    frame_system::CheckSpecVersion<Runtime>,
+    frame_system::CheckTxVersion<Runtime>,
+    frame_system::CheckGenesis<Runtime>,
+    frame_system::CheckEra<Runtime>,
+    frame_system::CheckNonce<Runtime>,
+    frame_system::CheckWeight<Runtime>,
+);
+pub type UncheckedExtrinsic =
+    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+
+pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+
+// ────────────────────────────────────────────────────────────
+// Runtime Version
+// ────────────────────────────────────────────────────────────
+
+pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
+    spec_name: sp_runtime::create_runtime_str!("blesschain"),
+    impl_name: sp_runtime::create_runtime_str!("blesschain"),
+    authoring_version: 1,
+    spec_version: 1,
+    impl_version: 1,
+    transaction_version: 1,
+    system_version: 1,
+    apis: sp_version::ApisVec::Borrowed(&[]),   // ← FIXED
+};
+
+// ────────────────────────────────────────────────────────────
+// Constants
+// ────────────────────────────────────────────────────────────
+
+parameter_types! {
+    pub const BlockHashCount: BlockNumber = 2400;
+    pub const SS58Prefix: u16 = 42;
+    pub const ExistentialDeposit: Balance = 1;
+
+    // 7 seconds per block：Slot = 7000 ms, MinimumPeriod = 3500
+    pub const MinimumPeriod: u64 = 3_500;
+}
+
+// ────────────────────────────────────────────────────────────
+// FRAME System
+// ────────────────────────────────────────────────────────────
+
 impl system::Config for Runtime {
     type BaseCallFilter = Everything;
-    type BlockWeights = ();
-    type BlockLength = ();
-    type DbWeight = ();
     type RuntimeOrigin = RuntimeOrigin;
     type RuntimeCall = RuntimeCall;
     type RuntimeEvent = RuntimeEvent;
+
     type AccountId = AccountId;
-    type Lookup = IdentityLookup<Self::AccountId>;
-    type Index = Index;
-    type BlockNumber = BlockNumber;
-    type Hash = H256;
+    type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
+    type Block = Block;
+    type Hash = Hash;
     type Hashing = BlakeTwo256;
-    type Header = generic::Header<BlockNumber, BlakeTwo256>;
+    type Nonce = Index;
+    type BlockHashCount = BlockHashCount;
+
+    type DbWeight = ();
+    type BlockWeights = ();
+    type BlockLength = ();
     type Version = ();
     type PalletInfo = PalletInfo;
     type AccountData = pallet_balances::AccountData<Balance>;
+
     type OnNewAccount = ();
     type OnKilledAccount = ();
+
     type SystemWeightInfo = ();
-    type BlockHashCount = ConstU32<2400>;
-    type MaxConsumers = ConstU32<16>;
-    type SS58Prefix = ConstU16<42>;
+    type SS58Prefix = SS58Prefix;
+
     type OnSetCode = ();
+    type MaxConsumers = ConstU32<16>;
+
+    type RuntimeTask = ();
+    type SingleBlockMigrations = ();
+    type MultiBlockMigrator = ();
+    type PreInherents = ();
+    type PostInherents = ();
+    type PostTransactions = ();
+    type ExtensionsWeightInfo = ();
 }
 
-// ---------------- Balances ----------------
-parameter_types! {
-    pub const ExistentialDeposit: u128 = 1;
-}
+// ────────────────────────────────────────────────────────────
+// Balances
+// ────────────────────────────────────────────────────────────
+
 impl pallet_balances::Config for Runtime {
     type Balance = Balance;
-    type DustRemoval = ();
     type RuntimeEvent = RuntimeEvent;
+
+    type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = System;
-    type WeightInfo = ();
-    type MaxLocks = ConstU32<10>;
-    type MaxReserves = ConstU32<50>;
+
+    type MaxLocks = ConstU32<50>;
+    type MaxReserves = ConstU32<0>;
     type ReserveIdentifier = [u8; 8];
-    type HoldIdentifier = ();
+
+    type WeightInfo = ();
+    type RuntimeHoldReason = ();
+    type RuntimeFreezeReason = ();
     type FreezeIdentifier = ();
-    type MaxHolds = ConstU32<0>;
-    type MaxFreezes = ConstU32<0>;
+    type MaxFreezes = ();
+    type DoneSlashHandler = ();
 }
 
-// ---------------- Timestamp ----------------
+// ────────────────────────────────────────────────────────────
+// Timestamp
+// ────────────────────────────────────────────────────────────
+
 impl pallet_timestamp::Config for Runtime {
     type Moment = u64;
+    type MinimumPeriod = MinimumPeriod;
     type OnTimestampSet = ();
-    /// Minimum period between blocks, set to half of the slot duration (3.5 seconds)
-    type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
     type WeightInfo = ();
 }
 
-// ---------------- Aura ----------------
-use sp_consensus_aura::sr25519;
-parameter_types! {
-    pub const MaxAuthorities: u32 = 32;
-}
+// ────────────────────────────────────────────────────────────
+// Aura
+// ────────────────────────────────────────────────────────────
+
 impl pallet_aura::Config for Runtime {
-    type AuthorityId = sr25519::AuthorityId;
+    type AuthorityId = AuraId;
+    type MaxAuthorities = ConstU32<32>;
     type DisabledValidators = ();
-    type MaxAuthorities = MaxAuthorities;
+    type AllowMultipleBlocksPerSlot = ();
+    // 7 seconds per block
+    type SlotDuration = ConstU64<7000>;
 }
 
-// ---------------- Construct Runtime ----------------
+// ────────────────────────────────────────────────────────────
+// Construct Runtime
+// ────────────────────────────────────────────────────────────
+
 construct_runtime!(
     pub enum Runtime where
         Block = Block,
         NodeBlock = Block,
         UncheckedExtrinsic = UncheckedExtrinsic,
     {
-        System: frame_system,
-        Balances: pallet_balances,
+        System: system,
         Timestamp: pallet_timestamp,
+        Balances: pallet_balances,
         Aura: pallet_aura,
     }
 );
 
-// ---------------- Mock types for minimal chain ----------------
-pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
-pub type Block = frame_system::mocking::MockBlock<Runtime>;
+// ────────────────────────────────────────────────────────────
+// Executive
+// ────────────────────────────────────────────────────────────
+
+pub type Executive = frame_executive::Executive<
+    Runtime,
+    Block,
+    system::ChainContext<Runtime>,
+    Runtime,
+    AllPalletsWithSystem,
+>;
 

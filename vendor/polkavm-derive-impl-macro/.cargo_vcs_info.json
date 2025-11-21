@@ -1,0 +1,6 @@
+{
+  "git": {
+    "sha1": "34dd89501ef906e4f709caa8badc9605b22692b1"
+  },
+  "path_in_vcs": "crates/polkavm-derive-impl-macro"
+}

@@ -1,0 +1,60 @@
+[package]
+name = "blesschain-node"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "../build.rs"
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+futures = { workspace = true, features = ["thread-pool"] }
+serde_json = { workspace = true }
+jsonrpsee = { workspace = true, features = ["server"] }
+docify = { workspace = true }
+
+# Substrate Client
+sc-cli = { path = "../../../blesschain-sdk/substrate/client/cli" }
+sc-service = { path = "../../../blesschain-sdk/substrate/client/service" }
+sc-executor = { path = "../../../blesschain-sdk/substrate/client/executor" }
+sc-network = { path = "../../../blesschain-sdk/substrate/client/network" }
+sc-telemetry = { path = "../../../blesschain-sdk/substrate/client/telemetry" }
+sc-offchain = { path = "../../../blesschain-sdk/substrate/client/offchain" }
+sc-client-api = { path = "../../../blesschain-sdk/substrate/client/api" }
+sc-transaction-pool = { path = "../../../blesschain-sdk/substrate/client/transaction-pool" }
+sc-transaction-pool-api = { path = "../../../blesschain-sdk/substrate/client/transaction-pool/api" }
+sc-rpc-api = { path = "../../../blesschain-sdk/substrate/client/rpc-api" }
+sc-basic-authorship = { path = "../../../blesschain-sdk/substrate/client/basic-authorship" }
+
+# Consensus
+sc-consensus = { path = "../../../blesschain-sdk/substrate/client/consensus/common" }
+sc-consensus-aura = { path = "../../../blesschain-sdk/substrate/client/consensus/aura" }
+sc-consensus-grandpa = { path = "../../../blesschain-sdk/substrate/client/consensus/grandpa" }
+
+# Substrate Primitives
+sp-core = { path = "../../../blesschain-sdk/substrate/primitives/core" }
+sp-runtime = { path = "../../../blesschain-sdk/substrate/primitives/runtime" }
+sp-io = { path = "../../../blesschain-sdk/substrate/primitives/io" }
+sp-api = { path = "../../../blesschain-sdk/substrate/primitives/api" }
+sp-keyring = { path = "../../../blesschain-sdk/substrate/primitives/keyring" }
+sp-timestamp = { path = "../../../blesschain-sdk/substrate/primitives/timestamp" }
+sp-inherents = { path = "../../../blesschain-sdk/substrate/primitives/inherents" }
+sp-blockchain = { path = "../../../blesschain-sdk/substrate/primitives/blockchain" }
+sp-block-builder = { path = "../../../blesschain-sdk/substrate/primitives/block-builder" }
+sp-consensus-aura = { path = "../../../blesschain-sdk/substrate/primitives/consensus/aura" }
+sp-consensus-grandpa = { path = "../../../blesschain-sdk/substrate/primitives/consensus/grandpa" }
+
+# FRAME
+frame-system = { path = "../../../blesschain-sdk/substrate/frame/system" }
+pallet-transaction-payment = { path = "../../../blesschain-sdk/substrate/frame/transaction-payment", default-features = false }
+pallet-transaction-payment-rpc = { path = "../../../blesschain-sdk/substrate/frame/transaction-payment/rpc" }
+substrate-frame-rpc-system = { path = "../../../blesschain-sdk/substrate/utils/frame/rpc/system" }
+
+# Local runtime
+blesschain-runtime = { path = "../../blesschain-runtime" }
+
+[build-dependencies]
+substrate-build-script-utils = { path = "../../../blesschain-sdk/substrate/utils/build-script-utils" }
+
+[features]
+default = []
+
