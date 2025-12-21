@@ -7,43 +7,66 @@ publish = false
 [dependencies]
 
 # FRAME core
-frame-support = { path = "../../blesschain-sdk/substrate/frame/support" }
-frame-system  = { path = "../../blesschain-sdk/substrate/frame/system" }
+frame-support   = { path = "../../blesschain-sdk/substrate/frame/support" }
+frame-system    = { path = "../../blesschain-sdk/substrate/frame/system" }
 frame-executive = { path = "../../blesschain-sdk/substrate/frame/executive" }
+frame-metadata-hash-extension = { path = "../../blesschain-sdk/substrate/frame/metadata-hash-extension" }
 
 # FRAME pallets
-pallet-balances  = { path = "../../blesschain-sdk/substrate/frame/balances" }
-pallet-timestamp = { path = "../../blesschain-sdk/substrate/frame/timestamp" }
-pallet-aura      = { path = "../../blesschain-sdk/substrate/frame/aura" }
+pallet-balances           = { path = "../../blesschain-sdk/substrate/frame/balances" }
+pallet-timestamp          = { path = "../../blesschain-sdk/substrate/frame/timestamp" }
+pallet-aura               = { path = "../../blesschain-sdk/substrate/frame/aura" }
+pallet-grandpa            = { path = "../../blesschain-sdk/substrate/frame/grandpa" }
+pallet-sudo               = { path = "../../blesschain-sdk/substrate/frame/sudo" }
+pallet-transaction-payment = { path = "../../blesschain-sdk/substrate/frame/transaction-payment", default-features = false }
+
+# template pallet（workspace）
+pallet-template = { path = "../pallets/template" }
 
 # Substrate primitives
-sp-runtime        = { path = "../../blesschain-sdk/substrate/primitives/runtime" }
-sp-core           = { path = "../../blesschain-sdk/substrate/primitives/core" }
-sp-io             = { path = "../../blesschain-sdk/substrate/primitives/io" }
-sp-api            = { path = "../../blesschain-sdk/substrate/primitives/api" }
-sp-inherents      = { path = "../../blesschain-sdk/substrate/primitives/inherents" }
-sp-version        = { path = "../../blesschain-sdk/substrate/primitives/version" }
-sp-timestamp      = { path = "../../blesschain-sdk/substrate/primitives/timestamp" }
-sp-consensus-aura = { path = "../../blesschain-sdk/substrate/primitives/consensus/aura" }
-sp-std = { path = "../../blesschain-sdk/substrate/primitives/std", default-features = false }
-sp-block-builder = { path = "../../blesschain-sdk/substrate/primitives/block-builder", default-features = false }
+sp-runtime           = { path = "../../blesschain-sdk/substrate/primitives/runtime" }
+sp-core              = { path = "../../blesschain-sdk/substrate/primitives/core" }
+sp-io                = { path = "../../blesschain-sdk/substrate/primitives/io" }
+sp-api               = { path = "../../blesschain-sdk/substrate/primitives/api" }
+sp-inherents         = { path = "../../blesschain-sdk/substrate/primitives/inherents" }
+sp-version           = { path = "../../blesschain-sdk/substrate/primitives/version" }
+sp-timestamp         = { path = "../../blesschain-sdk/substrate/primitives/timestamp" }
+sp-consensus-aura    = { path = "../../blesschain-sdk/substrate/primitives/consensus/aura" }
+sp-consensus-grandpa = { path = "../../blesschain-sdk/substrate/primitives/consensus/grandpa" }
+sp-offchain          = { path = "../../blesschain-sdk/substrate/primitives/offchain" }
+sp-session           = { path = "../../blesschain-sdk/substrate/primitives/session" }
+sp-genesis-builder   = { path = "../../blesschain-sdk/substrate/primitives/genesis-builder" }
+sp-keyring           = { path = "../../blesschain-sdk/substrate/primitives/keyring" }
+
+# Extra primitives used by runtime APIs / tx queue
+sp-std              = { path = "../../blesschain-sdk/substrate/primitives/std", default-features = false }
+sp-block-builder    = { path = "../../blesschain-sdk/substrate/primitives/block-builder", default-features = false }
 sp-transaction-pool = { path = "../../blesschain-sdk/substrate/primitives/transaction-pool", default-features = false }
-pallet-transaction-payment = { path = "../../blesschain-sdk/substrate/frame/transaction-payment", default-features = false }
+
+# RPC runtime APIs (node ↔ runtime)
+frame-system-rpc-runtime-api = { path = "../../blesschain-sdk/substrate/frame/system/rpc/runtime-api" }
+pallet-transaction-payment-rpc-runtime-api = { path = "../../blesschain-sdk/substrate/frame/transaction-payment/rpc/runtime-api" }
 
 # Codecs
 parity-scale-codec = { version = "3.6.5", features = ["derive"] }
 scale-info         = { version = "2.11.2", features = ["derive"] }
 
-serde = { version = "1.0", default-features = true }
+serde      = { version = "1.0", features = ["derive"], default-features = true }
+serde_json = { version = "1.0" }
 
 [features]
 default = ["std"]
 std = [
   "frame-support/std",
   "frame-system/std",
+  "frame-executive/std",
+  "frame-metadata-hash-extension/std",
   "pallet-balances/std",
   "pallet-timestamp/std",
   "pallet-aura/std",
+  "pallet-grandpa/std",
+  "pallet-sudo/std",
+  "pallet-transaction-payment/std",
   "sp-runtime/std",
   "sp-core/std",
   "sp-io/std",
@@ -52,12 +75,18 @@ std = [
   "sp-version/std",
   "sp-timestamp/std",
   "sp-consensus-aura/std",
-  "parity-scale-codec/std",
-  "scale-info/std",
-  "serde/std",
+  "sp-consensus-grandpa/std",
+  "sp-offchain/std",
+  "sp-session/std",
+  "sp-genesis-builder/std",
+  "sp-keyring/std",
   "sp-std/std",
   "sp-block-builder/std",
   "sp-transaction-pool/std",
-  "pallet-transaction-payment/std",
+  "frame-system-rpc-runtime-api/std",
+  "pallet-transaction-payment-rpc-runtime-api/std",
+  "parity-scale-codec/std",
+  "scale-info/std",
+  "serde/std",
 ]
 

@@ -1,154 +1,83 @@
-// This file is part of Substrate.
-//
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
+//! CLI/command wiring for BlessChain node.
+use std::path::PathBuf;
+use sc_cli::{Subcommand, RuntimeVersionCmd, ChainSpec, CliConfiguration};
+use clap::Parser;
 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+use sc_service::config::DatabaseSource;
+use sc_service::{config::Configuration, ChainType};
+use structopt::StructOpt;
 
-//! Command handling for BlessChain node.
+// Re-export runtime types for the CLI.
+use blesschain_runtime::RuntimeVersion as RuntimeVer;
+use blesschain_runtime::RuntimeGenesisConfig;
 
-use crate::{
-    chain_spec,
-    cli::{Cli, Subcommand},
-    service,
-};
+/// Your CLI definition. Adapt fields as you like (ports, base paths, etc).
+#[derive(Debug, Parser)]
+#[clap(name = "blesschain-node", about = "BlessChain node")]
+pub struct Cli {
+    /// Path to chain spec JSON file
+    #[clap(long)]
+    pub chain_spec: Option<PathBuf>,
 
-use sc_cli::{Result, SubstrateCli};
-use sc_service::PartialComponents;
+    /// Subcommand to run (check-block, build-spec, export-blocks, export-state, import-blocks, purge-chain, revert, run, etc)
+    #[clap(subcommand)]
+    pub subcommand: Option<Subcommand>,
+}
 
-impl SubstrateCli for Cli {
-    fn impl_name() -> String {
-        "BlessChain Node".into()
-    }
-
-    fn impl_version() -> String {
-        env!("CARGO_PKG_VERSION").into()
-    }
-
-    fn description() -> String {
-        "Minimal BlessChain development node".into()
-    }
-
-    fn author() -> String {
-        env!("CARGO_PKG_AUTHORS").into()
-    }
-
-    fn support_url() -> String {
-        "https://blesschain.org/support".into()
-    }
-
-    fn copyright_start_year() -> i32 {
-        2024
-    }
-
-    fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-        Ok(match id {
-            "dev" => Box::new(chain_spec::development_chain_spec()?),
-            path => Box::new(
-                chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?,
-            ),
-        })
+impl Cli {
+    pub fn from_args() -> Self {
+        Cli::parse()
     }
 }
 
-/// Parse and run command line arguments.
-pub fn run() -> Result<()> {
+/// Provide chain spec loader. Adapt names to your chain_spec module.
+pub fn load_spec(id: &str, path: Option<PathBuf>) -> Result<Box<dyn sc_service::ChainSpec>, String> {
+    match id {
+        "" | "dev" => Ok(Box::new(crate::chain_spec::development_config()?)),
+        "local" => Ok(Box::new(crate::chain_spec::local_testnet_config()?)),
+        _ => {
+            if let Some(p) = path {
+                Ok(Box::new(sc_service::ChainSpec::from_json_file(p)?))
+            } else {
+                Err("Unknown chain spec id and no path given".into())
+            }
+        }
+    }
+}
+
+/// Top-level command entrypoint used by `main`.
+pub fn run() -> sc_service::error::Result<()> {
     let cli = Cli::from_args();
 
+    // If subcommand present, handle special commands (build-spec, check-block, etc)
     match &cli.subcommand {
-        Some(Subcommand::Key(cmd)) => cmd.run(&cli),
-
-        #[allow(deprecated)]
         Some(Subcommand::BuildSpec(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+            // BuildSpec requires a ChainSpec. Use default dev chain spec if none provided.
+            let chain_spec = load_spec("dev", cli.chain_spec.clone()).map_err(|e| sc_service::error::Error::Other(e))?;
+            cmd.run(chain_spec, sc_service::config::Configuration::default())?;
+            return Ok(());
         }
-
         Some(Subcommand::CheckBlock(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let PartialComponents { client, task_manager, import_queue, .. } =
-                    service::new_partial(&config)?;
-                Ok((cmd.run(client, import_queue), task_manager))
-            })
+            // Usually CheckBlock is async and needs a client + import queue. Implement when needed.
+            return Err(sc_service::error::Error::Other("CheckBlock not wired in this template".into()));
         }
-
-        Some(Subcommand::ExportChainSpec(cmd)) => {
-            let chain_spec = cli.load_spec(&cmd.chain)?;
-            cmd.run(chain_spec)
+        Some(Subcommand::Run(cmd)) | None => {
+            // Normal node run path
+            // Build configuration from args (this leverages sc_cli & sc_service machinery in upstream)
+            // For a simple approach, create a default Configuration then call service::new_full.
+            let mut config = Configuration::default();
+            // You should override config fields from CLI args here (chain_spec path, role, ports, etc).
+            // For now, assume dev:
+            config.chain_spec = load_spec("dev", cli.chain_spec.clone()).map_err(|e| sc_service::error::Error::Other(e))?;
+            // Start the full node:
+            let mut task_manager = crate::service::new_full(&config)?;
+            // TaskManager runs until exit; usually you exit when TaskManager.join() returns.
+            // Here we just keep running until ctrl-c.
+            task_manager.future().wait().unwrap_or_else(|_| ());
+            return Ok(());
         }
-
-        Some(Subcommand::ExportBlocks(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let PartialComponents { client, task_manager, .. } = service::new_partial(&config)?;
-                Ok((cmd.run(client, config.database), task_manager))
-            })
-        }
-
-        Some(Subcommand::ExportState(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let PartialComponents { client, task_manager, .. } = service::new_partial(&config)?;
-                Ok((cmd.run(client, config.chain_spec), task_manager))
-            })
-        }
-
-        Some(Subcommand::ImportBlocks(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let PartialComponents { client, task_manager, import_queue, .. } =
-                    service::new_partial(&config)?;
-                Ok((cmd.run(client, import_queue), task_manager))
-            })
-        }
-
-        Some(Subcommand::PurgeChain(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.sync_run(|config| cmd.run(config.database))
-        }
-
-        Some(Subcommand::Revert(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let PartialComponents { client, task_manager, backend, .. } =
-                    service::new_partial(&config)?;
-                Ok((cmd.run(client, backend, None), task_manager))
-            })
-        }
-
-        Some(Subcommand::ChainInfo(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            // Use the concrete Block type from your runtime.
-            runner.sync_run(|config| cmd.run::<blesschain_runtime::Block>(&config))
-        }
-
-        None => {
-            let runner = cli.create_runner(&cli.run)?;
-            runner.run_node_until_exit(|config| async move {
-                match config.network.network_backend {
-                    sc_network::config::NetworkBackendType::Libp2p =>
-                        service::new_full::<sc_network::NetworkWorker<_, _>>(config, cli.consensus)
-                            .map_err(sc_cli::Error::Service),
-
-                    sc_network::config::NetworkBackendType::Litep2p =>
-                        service::new_full::<sc_network::Litep2pNetworkBackend>(
-                            config,
-                            cli.consensus,
-                        )
-                        .map_err(sc_cli::Error::Service),
-                }
-            })
+        Some(other) => {
+            return Err(sc_service::error::Error::Other(format!("Subcommand {:?} not implemented in template", other)));
         }
     }
 }

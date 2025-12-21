@@ -1,211 +1,163 @@
-// blesschain-runtime/src/lib.rs
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_std::prelude::*;
+extern crate alloc;
 
-// FRAME & pallets
-use frame_support::{
-    construct_runtime,
-    parameter_types,
-    traits::{ConstU32, ConstU64, Everything},
-};
-use frame_system as system;
+pub mod types;
+pub mod genesis_config;
 
-// Core primitives
-use sp_core::{H256, OpaqueMetadata};
+use alloc::vec::Vec;
+use sp_runtime::{generic, traits::Block as BlockT};
 use sp_runtime::{
-    generic,
-    traits::{BlakeTwo256, IdentifyAccount, Verify, Block as BlockT},
-    MultiSignature, MultiAddress,
-    transaction_validity::{TransactionSource, TransactionValidity},
-    ApplyExtrinsicResult,
-    generic::LazyBlock,
+    create_runtime_str,
+    traits::{BlakeTwo256, IdentifyAccount, Verify},
+    MultiSignature,
 };
+
 use sp_version::RuntimeVersion;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_api::{impl_runtime_apis, Core as CoreApi};
-use sp_inherents::{CheckInherentsResult, InherentData};
-use sp_consensus_aura::SlotDuration;
-use sp_block_builder::BlockBuilder as BlockBuilderApi;
-use sp_consensus_aura::AuraApi as AuraRuntimeApi;
+use frame_support::traits::Everything;
+use sp_api::impl_runtime_apis;
 
-// ────────────────────────────────────────────────────────────
-// Basic Types
-// ────────────────────────────────────────────────────────────
+fn metadata_at_version(version: u32) -> Option<sp_core::OpaqueMetadata> {
+    Runtime::metadata_at_version(version)
+}
 
-pub type Signature = MultiSignature;
-pub type AccountPublic = <Signature as Verify>::Signer;
+// ===----------------------------------------------------------------===
+//  Runtime Version
+// ===----------------------------------------------------------------===
 
-pub type AccountId = <AccountPublic as IdentifyAccount>::AccountId;
-pub type BlockNumber = u32;
-pub type Balance = u128;
-pub type Index = u32;
-pub type Hash = H256;
-
-pub type Address = MultiAddress<AccountId, ()>;
-
-pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
-
-pub type SignedExtra = (
-    frame_system::CheckNonZeroSender<Runtime>,
-    frame_system::CheckSpecVersion<Runtime>,
-    frame_system::CheckTxVersion<Runtime>,
-    frame_system::CheckGenesis<Runtime>,
-    frame_system::CheckEra<Runtime>,
-    frame_system::CheckNonce<Runtime>,
-    frame_system::CheckWeight<Runtime>,
-);
-pub type UncheckedExtrinsic =
-    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
-
-pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-
-// ────────────────────────────────────────────────────────────
-// Runtime Version
-// ────────────────────────────────────────────────────────────
-
-pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
-    spec_name: sp_runtime::create_runtime_str!("blesschain"),
-    impl_name: sp_runtime::create_runtime_str!("blesschain"),
+#[sp_version::runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {
+    spec_name: create_runtime_str!("blesschain"),
+    impl_name: create_runtime_str!("blesschain"),
     authoring_version: 1,
     spec_version: 1,
     impl_version: 1,
+    apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
     system_version: 1,
-    apis: sp_version::ApisVec::Borrowed(&[]),   // ← FIXED
 };
 
-// ────────────────────────────────────────────────────────────
-// Constants
-// ────────────────────────────────────────────────────────────
+// ===----------------------------------------------------------------===
+//  Basic Types
+// ===----------------------------------------------------------------===
 
-parameter_types! {
-    pub const BlockHashCount: BlockNumber = 2400;
-    pub const SS58Prefix: u16 = 42;
-    pub const ExistentialDeposit: Balance = 1;
+pub type Signature = MultiSignature;
+pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+pub type Balance = u128;
+pub type Nonce = u32;
+pub type BlockNumber = u32;
 
-    // 7 seconds per block：Slot = 7000 ms, MinimumPeriod = 3500
-    pub const MinimumPeriod: u64 = 3_500;
+pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
+pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+
+pub type UncheckedExtrinsic =
+    sp_runtime::generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, ()>;
+
+pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+
+pub type Executive = frame_executive::Executive<
+    Runtime,
+    Block,
+    frame_system::ChainContext<Runtime>,
+    Runtime,
+    AllPalletsWithSystem,
+>;
+
+// ===----------------------------------------------------------------===
+//  Runtime construction
+// ===----------------------------------------------------------------===
+
+#[frame_support::runtime]
+mod runtime {
+    #[runtime::runtime]
+    #[runtime::derive(
+        RuntimeCall,
+        RuntimeEvent,
+        RuntimeError,
+        RuntimeOrigin
+    )]
+    pub struct Runtime;
+
+    #[runtime::pallet_index(0)]
+    pub type System = frame_system;
+
+    #[runtime::pallet_index(1)]
+    pub type Balances = pallet_balances;
 }
 
-// ────────────────────────────────────────────────────────────
-// FRAME System
-// ────────────────────────────────────────────────────────────
+// ===----------------------------------------------------------------===
+//  Configurations
+// ===----------------------------------------------------------------===
 
-impl system::Config for Runtime {
+impl frame_system::Config for Runtime {
     type BaseCallFilter = Everything;
-    type RuntimeOrigin = RuntimeOrigin;
-    type RuntimeCall = RuntimeCall;
-    type RuntimeEvent = RuntimeEvent;
-
-    type AccountId = AccountId;
-    type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
-    type Block = Block;
-    type Hash = Hash;
-    type Hashing = BlakeTwo256;
-    type Nonce = Index;
-    type BlockHashCount = BlockHashCount;
-
-    type DbWeight = ();
     type BlockWeights = ();
     type BlockLength = ();
+    type DbWeight = ();
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type RuntimeOrigin = RuntimeOrigin;
+    type Nonce = Nonce;
+    type Block = Block;
+    type Hash = sp_core::H256;
+    type Hashing = BlakeTwo256;
+    type AccountId = AccountId;
+    type Lookup = sp_runtime::traits::AccountIdLookup<AccountId, ()>;
+    type BlockHashCount = frame_support::traits::ConstU32<2400>;
     type Version = ();
     type PalletInfo = PalletInfo;
     type AccountData = pallet_balances::AccountData<Balance>;
-
     type OnNewAccount = ();
     type OnKilledAccount = ();
-
     type SystemWeightInfo = ();
-    type SS58Prefix = SS58Prefix;
-
+    type SS58Prefix = frame_support::traits::ConstU16<42>;
     type OnSetCode = ();
-    type MaxConsumers = ConstU32<16>;
-
     type RuntimeTask = ();
+    type ExtensionsWeightInfo = ();
+    type MaxConsumers = frame_support::traits::ConstU32<16>;
     type SingleBlockMigrations = ();
     type MultiBlockMigrator = ();
     type PreInherents = ();
     type PostInherents = ();
     type PostTransactions = ();
-    type ExtensionsWeightInfo = ();
 }
 
-// ────────────────────────────────────────────────────────────
-// Balances
-// ────────────────────────────────────────────────────────────
-
 impl pallet_balances::Config for Runtime {
-    type Balance = Balance;
     type RuntimeEvent = RuntimeEvent;
-
+    type Balance = Balance;
     type DustRemoval = ();
-    type ExistentialDeposit = ExistentialDeposit;
+    type ExistentialDeposit = frame_support::traits::ConstU128<1000>;
     type AccountStore = System;
-
-    type MaxLocks = ConstU32<50>;
-    type MaxReserves = ConstU32<0>;
-    type ReserveIdentifier = [u8; 8];
-
     type WeightInfo = ();
+    type MaxLocks = frame_support::traits::ConstU32<0>;
+    type MaxReserves = frame_support::traits::ConstU32<0>;
+    type ReserveIdentifier = [u8; 8];
     type RuntimeHoldReason = ();
     type RuntimeFreezeReason = ();
     type FreezeIdentifier = ();
-    type MaxFreezes = ();
+    type MaxFreezes = frame_support::traits::ConstU32<0>;
     type DoneSlashHandler = ();
 }
 
-// ────────────────────────────────────────────────────────────
-// Timestamp
-// ────────────────────────────────────────────────────────────
+// ===----------------------------------------------------------------===
+//  Runtime APIs (MINIMAL)
+// ===----------------------------------------------------------------===
 
-impl pallet_timestamp::Config for Runtime {
-    type Moment = u64;
-    type MinimumPeriod = MinimumPeriod;
-    type OnTimestampSet = ();
-    type WeightInfo = ();
-}
+impl_runtime_apis! {
+    impl sp_api::Core<Block> for Runtime {
+        fn version() -> RuntimeVersion {
+            VERSION
+        }
 
-// ────────────────────────────────────────────────────────────
-// Aura
-// ────────────────────────────────────────────────────────────
+        fn execute_block(block: <Block as sp_runtime::traits::Block>::LazyBlock) { 
+                Executive::execute_block(block);
+        }
 
-impl pallet_aura::Config for Runtime {
-    type AuthorityId = AuraId;
-    type MaxAuthorities = ConstU32<32>;
-    type DisabledValidators = ();
-    type AllowMultipleBlocksPerSlot = ();
-    // 7 seconds per block
-    type SlotDuration = ConstU64<7000>;
-}
-
-// ────────────────────────────────────────────────────────────
-// Construct Runtime
-// ────────────────────────────────────────────────────────────
-
-construct_runtime!(
-    pub enum Runtime where
-        Block = Block,
-        NodeBlock = Block,
-        UncheckedExtrinsic = UncheckedExtrinsic,
-    {
-        System: system,
-        Timestamp: pallet_timestamp,
-        Balances: pallet_balances,
-        Aura: pallet_aura,
+        fn initialize_block(header: &<Block as sp_runtime::traits::Block>::Header) 
+            -> sp_runtime::ExtrinsicInclusionMode 
+        {
+            Executive::initialize_block(header)
+        }
     }
-);
-
-// ────────────────────────────────────────────────────────────
-// Executive
-// ────────────────────────────────────────────────────────────
-
-pub type Executive = frame_executive::Executive<
-    Runtime,
-    Block,
-    system::ChainContext<Runtime>,
-    Runtime,
-    AllPalletsWithSystem,
->;
+}
 
