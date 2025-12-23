@@ -1,16 +1,19 @@
-📘 BlessChain
+# 🧱 BlessChain
 
-Next-Generation Home-Node Blockchain Network
+**Next-Generation Home-Node Blockchain Network**
 
-Modular • Energy-Aware • Community-Powered
+**Modular · Energy-Aware · Community-Powered**
 
-BlessChain – Minimal Proof-of-Concept Blockchain (MVP → TestNet Evolution)
+BlessChain is a minimal proof-of-concept blockchain designed to evolve from **MVP → TestNet → MainNet**,  
+focusing on home-server validator nodes and distributed edge infrastructure.
 
-Version: v0.2.0 (MVP2.0)
-Author: BlessChain Team
-Director: Joseph Wang
-Website: https://blesschain.com
-Repository: https://github.com/blesschain-official/blesschain
+**Version:** v0.2.0 (MVP2.0)  
+**Status:** MVP → TestNet Evolution  
+**Author:** BlessChain Team  
+**Project Director:** Joseph Wang  
+
+🌐 **Website:** https://blesschain.com  
+📦 **Repository:** https://github.com/blesschain-official/Blesschain
 
 ---
 
