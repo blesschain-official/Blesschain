@@ -14,6 +14,26 @@ Repository: https://github.com/blesschain-official/blesschain
 
 ---
 
+## 📘 Blesschain Litepaper v0.1
+
+Blesschain Litepaper v0.1 provides a high-level overview of the project vision, architectural principles, current development status, and roadmap.
+
+This Litepaper is intended for community members, contributors, and external readers.  
+It does **not** replace technical documentation or source code in this repository.
+
+- Runtime layer: **Completed**
+- Mock block execution: **Completed**
+- Node & consensus integration: **In progress**
+
+### 🌍 Language Support
+The Litepaper is available in **13 languages**, including Simplified and Traditional Chinese.
+
+### 📥 Download
+- **GitHub Release:**  
+  https://github.com/blesschain-official/Blesschain/releases/tag/v0.1-litepaper
+
+---
+
 📌 Overview
 
 BlessChain is a lightweight Substrate-based blockchain designed to power the Bless Ecosystem — a decentralized network of:
