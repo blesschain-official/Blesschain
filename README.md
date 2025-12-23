@@ -12,7 +12,7 @@ focusing on home-server validator nodes and distributed edge infrastructure.
 **Author:** BlessChain Team  
 **Project Director:** Joseph Wang  
 
-🌐 **Website:** https://blesschain.com  
+🌐 **Website:** https://blesschain.org
 📦 **Repository:** https://github.com/blesschain-official/Blesschain
 
 ---
